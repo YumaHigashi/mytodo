@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Todo {
+  value       String
+  id          Int       @id @default(autoincrement())
+  checked     Boolean   @default(false)
+  removed     Boolean   @default(false)
+  completedAt DateTime? @map("completed_at")
+
+  @@map("todos")
+}
