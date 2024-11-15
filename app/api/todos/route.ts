@@ -37,15 +37,10 @@ export const POST = async (request: Request) => {
 // データベースのTodoの一部を一件更新する
 export const PATCH = async (request: Request) => {
   try {
-    const { input }: { input: Todo } = await request.json();
+    const { input } = await request.json();
     const updatedTodo: Todo = await prisma.todo.update({
       where: { id: input.id },
-      data: {
-        value: input.value,
-        checked: input.checked,
-        removed: input.removed,
-        completedAt: input.completedAt ? input.completedAt : null,
-      },
+      data: { [input.key]: input[input.key] },
     });
     return NextResponse.json(updatedTodo);
   } catch (error) {

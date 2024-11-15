@@ -17,7 +17,7 @@ export default function MyToDo() {
   const [text, setText] = useState<string>("");
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date | null>(null);
 
   // TODOの更新処理を遅延させる関数
   const updateTodo = useCallback(
@@ -32,25 +32,23 @@ export default function MyToDo() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ input: { id: id, [key]: value } }),
+          body: JSON.stringify({ input: { id: id, key: key, [key]: value } }),
         });
       },
-      1000
+      500
     ),
     []
   );
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setText(e.target.value);
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDate(new Date(e.target.value));
+  const handleChange = <T extends string | Date | null>(
+    setter: React.Dispatch<React.SetStateAction<T>>,
+    value: T
+  ) => {
+    setter(value);
   };
 
   const handleSubmit = async () => {
     if (!text) return;
-    if (!date) return;
 
     const newTodo: Todo = {
       value: text,
@@ -70,7 +68,6 @@ export default function MyToDo() {
       .then((res) => res.json())
       .then((data) => setTodos([...todos, data]));
     setText("");
-    setDate(new Date());
   };
 
   // TODO情報を更新する関数
@@ -171,14 +168,19 @@ export default function MyToDo() {
                     type="text"
                     placeholder="TODOを入力"
                     value={text}
-                    onChange={(e) => handleTextChange(e)}
+                    onChange={(e) => handleChange(setText, e.target.value)}
                     className="focus-visible:outline-none focus-visible:ring focus-visible:ring-red-300"
                   />
                   <HiOutlineClock className="size-5" />
                   <Input
                     type="date"
-                    value={date.toISOString().split("T")[0]}
-                    onChange={(e) => handleDateChange(e)}
+                    value={date ? date.toISOString().split("T")[0] : ""}
+                    onChange={(e) =>
+                      handleChange(
+                        setDate,
+                        e.target.value ? new Date(e.target.value) : null
+                      )
+                    }
                     className="focus-visible:outline-none focus-visible:ring focus-visible:ring-red-300"
                   />
                 </div>
@@ -232,7 +234,7 @@ export default function MyToDo() {
                       onChange={(e) => {
                         handleTodo(
                           "completedAt",
-                          new Date(e.target.value),
+                          e.target.value ? new Date(e.target.value) : null,
                           todo.id
                         );
                       }}
